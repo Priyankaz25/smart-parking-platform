@@ -1,0 +1,318 @@
+.app-shell {
+  min-height: 100vh;
+}
+
+.app-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.25rem;
+}
+
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1.2rem;
+  background: #ffffff;
+  border-bottom: 1px solid #e5ece7;
+  box-shadow: 0 6px 20px rgba(34, 75, 49, 0.08);
+}
+
+.navbar-brand {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #16703d;
+  cursor: pointer;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.nav-link {
+  padding: 0.45rem 0.75rem;
+  border-radius: 0.6rem;
+  color: #325746;
+}
+
+.nav-link.active {
+  background: #dff4e7;
+  color: #0f6838;
+}
+
+.navbar-session {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.session-name {
+  font-weight: 600;
+  color: #1d4a32;
+}
+
+.page-wrap {
+  display: grid;
+  gap: 1rem;
+}
+
+.page-wrap.narrow {
+  max-width: 500px;
+  margin: 2rem auto;
+}
+
+.hero-panel,
+.panel,
+.search-card,
+.auth-card,
+.parking-card {
+  background: #ffffff;
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(24, 63, 40, 0.08);
+  border: 1px solid #e4ebe6;
+}
+
+.hero-panel,
+.panel,
+.search-card,
+.auth-card {
+  padding: 1rem;
+}
+
+.hero-panel {
+  padding: 1.6rem;
+  background: linear-gradient(155deg, #ffffff, #f4fbf7);
+}
+
+/* 🔥 HERO TITLE UPGRADE */
+.hero-title {
+  font-size: 56px;
+  font-weight: 800;
+  color: #222;
+  line-height: 1.2;
+  margin-bottom: 20px;
+}
+
+/* GREEN HIGHLIGHT */
+.highlight {
+  color: #28a745;
+}
+
+/* FEATURES ROW (SIDE BY SIDE) */
+.hero-features {
+  display: flex;
+  gap: 30px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+/* EACH FEATURE ITEM */
+.feature {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  color: #444;
+}
+
+/* ICON STYLE */
+.icon {
+  background: #e6f4ea;
+  color: #28a745;
+  padding: 8px;
+  border-radius: 50%;
+  font-size: 14px;
+}
+
+/* DESCRIPTION TEXT */
+.hero-desc {
+  font-size: 18px;
+  color: #555;
+  line-height: 1.6;
+  max-width: 650px;
+}
+
+.hero-panel p {
+  margin-top: 0.6rem;
+  color: #436859;
+  max-width: 760px;
+  line-height: 1.5;
+}
+
+.hero-panel h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+}
+
+.subtext {
+  margin: 0;
+  color: #597465;
+}
+
+.search-tabs {
+  display: flex;
+  gap: 0.45rem;
+  margin-bottom: 0.85rem;
+}
+
+.tab-btn {
+  border: none;
+  background: #edf1ee;
+  color: #446354;
+  border-radius: 0.6rem;
+  padding: 0.55rem 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+  background: #16703d;
+  color: white;
+}
+
+.tab-btn:hover {
+  transform: translateY(-1px);
+}
+
+.search-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.8rem;
+  margin-bottom: 0.9rem;
+}
+
+label {
+  display: grid;
+  gap: 0.35rem;
+  color: #335544;
+  font-size: 0.9rem;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 0.62rem 0.7rem;
+  border-radius: 0.6rem;
+  border: 1px solid #ced8d1;
+  outline: none;
+}
+
+input:focus,
+select:focus {
+  border-color: #15803d;
+}
+
+.btn {
+  border: none;
+  cursor: pointer;
+  border-radius: 0.6rem;
+  padding: 0.62rem 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #16703d;
+  color: #fff;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(17, 84, 47, 0.18);
+}
+
+.btn-cta {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  font-size: 1rem;
+  background: #1b8a4a;
+  color: #fff;
+}
+
+.btn-outline {
+  background: #eef3f0;
+  color: #244937;
+}
+
+.btn.full {
+  width: 100%;
+}
+
+.results-grid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.parking-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem;
+  align-items: flex-start;
+  transition: all 0.2s ease;
+}
+
+.parking-card p {
+  margin: 0.2rem 0;
+}
+
+.parking-card.active {
+  border-color: #9fd7b8;
+  box-shadow: 0 14px 34px rgba(17, 89, 50, 0.16);
+}
+
+.parking-card-main {
+  max-width: 780px;
+}
+
+.map-panel {
+  overflow: hidden;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+}
+
+.leaflet-map {
+  width: 100%;
+  height: 390px;
+}
+
+.custom-marker {
+  background: #16a34a;
+  border-radius: 999px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 18px;
+  border: 3px solid #fff;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.custom-marker:hover {
+  transform: scale(1.08);
+  background: #15803d;
+}
+
+.custom-marker.active {
+  background: #166534;
+  transform: scale(1.08);
+}
+
+/* rest of your code unchanged... */
