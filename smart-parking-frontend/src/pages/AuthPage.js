@@ -60,63 +60,95 @@ function AuthPage() {
   };
 
   return (
-    <div className="page-wrap narrow">
-      <section className="auth-card">
-        <h2>{isSignup ? "Create your account" : "Sign in to ParkNest"}</h2>
-        <form onSubmit={onSubmit}>
+  <div className="min-h-screen bg-slate-50 flex items-center justify-center px-6 py-10">
+    <div className="w-full max-w-6xl bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden grid md:grid-cols-2">
+      
+      {/* Left section */}
+      <div className="hidden md:flex flex-col justify-between bg-white p-12 border-r border-slate-100">
+        <div>
+          <div className="text-4xl font-bold text-emerald-600 mb-10">P</div>
+          <h1 className="text-4xl font-semibold text-slate-900 leading-tight mb-6">
+            Smart parking made simple.
+          </h1>
+          <p className="text-lg text-slate-500 leading-8">
+            Sign in or create an account to book parking spaces,
+            manage listings, and track reservations with ParkNest.
+          </p>
+        </div>
+
+        <p className="text-sm text-slate-400">
+          By continuing, you agree to our Terms & Privacy Policy.
+        </p>
+      </div>
+
+      {/* Right section */}
+      <div className="p-10 md:p-14">
+        <h2 className="text-3xl font-semibold text-slate-900 mb-8">
+          {isSignup ? "Create account" : "Welcome back"}
+        </h2>
+
+        <form onSubmit={onSubmit} className="space-y-5">
           {isSignup && (
-            <label>
-              <span>Name</span>
-              <input
-                type="text"
-                value={form.name}
-                onChange={(event) => onFieldChange("name", event.target.value)}
-                required
-              />
-            </label>
-          )}
-          <label>
-            <span>Email</span>
             <input
-              type="email"
-              value={form.email}
-              onChange={(event) => onFieldChange("email", event.target.value)}
+              type="text"
+              placeholder="Full name"
+              value={form.name}
+              onChange={(e) => onFieldChange("name", e.target.value)}
               required
+              className="w-full rounded-xl border border-slate-300 px-4 py-4 outline-none focus:ring-2 focus:ring-emerald-500"
             />
-          </label>
-          <label>
-            <span>Password</span>
-            <input
-              type="password"
-              value={form.password}
-              onChange={(event) => onFieldChange("password", event.target.value)}
-              required
-            />
-          </label>
-          <label>
-            <span>{isSignup ? "Register as" : "Login as"}</span>
-            <select value={form.role} onChange={(event) => onFieldChange("role", event.target.value)}>
-              <option value="user">Driver</option>
-              <option value="owner">Parking Owner</option>
-              <option value="admin">Admin</option>
-            </select>
-          </label>
-          {!isSignup && (
-            <label>
-              <span>Note</span>
-              <input value="Role is validated from backend profile" readOnly />
-            </label>
           )}
-          <button type="submit" className="btn btn-primary full" disabled={loading}>
-            {loading ? "Please wait..." : isSignup ? "Register" : "Login"}
+
+          <input
+            type="email"
+            placeholder="Email address"
+            value={form.email}
+            onChange={(e) => onFieldChange("email", e.target.value)}
+            required
+            className="w-full rounded-xl border border-slate-300 px-4 py-4 outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+
+          <input
+            type="password"
+            placeholder="Password"
+            value={form.password}
+            onChange={(e) => onFieldChange("password", e.target.value)}
+            required
+            className="w-full rounded-xl border border-slate-300 px-4 py-4 outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+
+          <select
+            value={form.role}
+            onChange={(e) => onFieldChange("role", e.target.value)}
+            className="w-full rounded-xl border border-slate-300 px-4 py-4 bg-white outline-none focus:ring-2 focus:ring-emerald-500"
+          >
+            <option value="user">Driver</option>
+            <option value="owner">Parking Owner</option>
+            <option value="admin">Admin</option>
+          </select>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-xl bg-emerald-600 text-white py-4 font-semibold hover:bg-emerald-700 transition"
+          >
+            {loading ? "Please wait..." : isSignup ? "Create account" : "Login"}
           </button>
         </form>
-        <button type="button" className="btn btn-outline full" onClick={() => setIsSignup((s) => !s)}>
-          {isSignup ? "Already have an account? Login" : "New user? Register"}
+
+        <button
+          type="button"
+          onClick={() => setIsSignup((s) => !s)}
+          className="w-full mt-4 rounded-xl border border-slate-200 py-4 font-medium text-slate-700 hover:bg-slate-50 transition"
+        >
+          {isSignup
+            ? "Already have an account? Login"
+            : "New user? Register"}
         </button>
-      </section>
+      </div>
     </div>
-  );
+  </div>
+);
 }
 
 export default AuthPage;

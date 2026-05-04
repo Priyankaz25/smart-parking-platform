@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import AuthRequiredModal from "../components/AuthRequiredModal";
 import FeaturesSection from "../components/FeaturesSection";
@@ -9,8 +9,10 @@ import ParkingCard from "../components/ParkingCard";
 import PaymentModal from "../components/PaymentModal";
 import SearchForm from "../components/SearchForm";
 import { useToast } from "../components/Toast";
-import { createBooking, getNearbySlots } from "../services/api";
+import { createBooking, getAllSlots, getNearbySlots } from "../services/api";
 import { getSession } from "../services/session";
+import { geocodeLocationText } from "../utils/geocode";
+import { slotMatchesListing } from "../utils/slotFilters";
 import { composeDateTime, isObjectEmpty, validateSearchForm } from "../utils/validation";
 
 const INDIA_CENTER = [22.9734, 78.6569];
@@ -26,100 +28,91 @@ function HomePage() {
   });
   const [errors, setErrors] = useState({});
   const [slots, setSlots] = useState([]);
+  const [browseSlots, setBrowseSlots] = useState([]);
   const [loading, setLoading] = useState(false);
   const [bookingSlotId, setBookingSlotId] = useState("");
   const [mapCenter, setMapCenter] = useState(INDIA_CENTER);
   const [selectedSlotId, setSelectedSlotId] = useState("");
   const [searchedOnce, setSearchedOnce] = useState(false);
+  const [mapRecenterVersion, setMapRecenterVersion] = useState(0);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [bookingDraft, setBookingDraft] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
-  const filteredSlots = useMemo(
-    () =>
-      slots.filter((slot) => {
-        const slotVehicle = (slot.vehicleType || "").toLowerCase();
-        const matchesVehicle = slotVehicle === "4w" || slotVehicle.includes("4");
-        const matchesAvailability = slot.listingStatus === "approved" && slot.isAvailable === true;
-        return matchesVehicle && matchesAvailability;
-      }),
-    [slots]
-  );
+ useEffect(() => {
+  setBrowseSlots([]);
+}, []);
+
+  const filteredBrowseSlots = useMemo(() => browseSlots.filter(slotMatchesListing), [browseSlots]);
+  const filteredSlots = useMemo(() => slots.filter(slotMatchesListing), [slots]);
+  const mapSlots = searchedOnce ? filteredSlots : filteredBrowseSlots;
 
   const onFilterChange = (key, value) => {
     setSearchForm((current) => ({ ...current, [key]: value }));
     setErrors((current) => ({ ...current, [key]: undefined }));
   };
 
-  const geocodeLocation = useCallback(async (locationText) => {
-    const query = encodeURIComponent(locationText);
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${query}`
-    );
-    const data = await response.json();
-    if (!data?.length) {
-      throw new Error("Location not found. Try a city or area name.");
-    }
-    const lat = Number(data[0].lat);
-    const lon = Number(data[0].lon);
-    return [lat, lon];
-  }, []);
-
   const onSearch = useCallback(async () => {
     const nextErrors = validateSearchForm(searchForm);
     setErrors(nextErrors);
     if (!isObjectEmpty(nextErrors)) {
-      showToast("Please fix search form validation errors", "error");
+      showToast("Please fix the highlighted fields", "error");
       return;
     }
 
     setLoading(true);
-    setSlots([]);
     setSelectedSlotId("");
     try {
-      const center = await geocodeLocation(searchForm.location);
+      const geo = await geocodeLocationText(searchForm.location);
+      const center = [geo.lat, geo.lng];
       setMapCenter(center);
+      setMapRecenterVersion((v) => v + 1);
       const data = await getNearbySlots({
-        lat: center[0],
-        lng: center[1],
+        lat: geo.lat,
+        lng: geo.lng,
+        radiusMeters: 2000,
       });
-      setSlots((data || []).filter((slot) => (slot.vehicleType || "").toLowerCase() === "4w"));
+      setSlots(data || []);
       setSearchedOnce(true);
-      showToast("Parking spaces loaded", "success");
+      showToast(geo.displayName ? `Showing parking near ${geo.displayName.split(",")[0]}` : "Parking spaces loaded", "success");
     } catch (error) {
-      setSlots([]);
-      showToast(error.message, "error");
+      const message = error.message || "Search failed";
+      setErrors((current) => ({ ...current, location: message }));
+      showToast(message, "error");
     } finally {
       setLoading(false);
     }
-  }, [geocodeLocation, searchForm, showToast]);
+  }, [searchForm, showToast]);
 
-  const onReserve = useCallback((slot) => {
-    const session = getSession();
-    if (!session?.user?.name) {
-      setShowAuthModal(true);
-      return;
-    }
+  const onReserve = useCallback(
+    (slot) => {
+      const session = getSession();
+      if (!session?.user?.name) {
+        setShowAuthModal(true);
+        return;
+      }
 
-    const validationErrors = validateSearchForm(searchForm);
-    setErrors(validationErrors);
-    if (!isObjectEmpty(validationErrors)) {
-      showToast("Please enter valid location and booking time", "error");
-      return;
-    }
-    if (slot.isAvailable === false) {
-      showToast("Slot is not available for selected time", "error");
-      return;
-    }
+      const validationErrors = validateSearchForm(searchForm);
+      setErrors(validationErrors);
+      if (!isObjectEmpty(validationErrors)) {
+        showToast("Please enter valid location and booking time", "error");
+        return;
+      }
+      if (slot.isAvailable === false) {
+        showToast("Slot is not available for selected time", "error");
+        return;
+      }
 
-    setBookingDraft({
-      slot,
-      startTime: composeDateTime(searchForm.date, searchForm.startTime),
-      endTime: composeDateTime(searchForm.date, searchForm.endTime),
-      status: activeTab === "Airport" ? "pending" : "confirmed",
-    });
-    setShowPaymentModal(true);
-  }, [activeTab, searchForm, showToast]);
+      setBookingDraft({
+        slot,
+        startTime: composeDateTime(searchForm.date, searchForm.startTime),
+        endTime: composeDateTime(searchForm.date, searchForm.endTime),
+        status: activeTab === "Airport" ? "pending" : "confirmed",
+      });
+      setShowPaymentModal(true);
+    },
+    [activeTab, searchForm, showToast]
+  );
 
   const finalizeBooking = useCallback(async () => {
     const session = getSession();
@@ -135,7 +128,7 @@ function HomePage() {
         endTime: bookingDraft.endTime,
         status: bookingDraft.status,
       });
-      showToast("Booking Confirmed!", "success");
+      showToast("Booking confirmed", "success");
       setShowPaymentModal(false);
       setBookingDraft(null);
     } catch (error) {
@@ -145,12 +138,14 @@ function HomePage() {
     }
   }, [bookingDraft, showToast]);
 
+  const mapZoom = searchedOnce ? 14 : 5;
+
   return (
-    <div className="bg-slate-50">
+    <div className="bg-slate-50 min-h-screen">
       <HeroSection />
       <FeaturesSection />
 
-      <div className="mx-auto max-w-6xl px-6 py-8 space-y-6">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8 space-y-6">
         <div className="mb-2 flex flex-wrap gap-2">
           {["Hourly", "Monthly", "Airport"].map((tab) => (
             <button
@@ -158,8 +153,8 @@ function HomePage() {
               type="button"
               className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
                 activeTab === tab
-                  ? "bg-green-600 text-white shadow"
-                  : "bg-gray-100 text-gray-600 hover:bg-green-50 hover:text-green-700"
+                  ? "bg-emerald-600 text-white shadow-md"
+                  : "bg-white text-slate-600 border border-slate-200 hover:border-emerald-200 hover:text-emerald-800"
               }`}
               onClick={() => setActiveTab(tab)}
             >
@@ -175,40 +170,62 @@ function HomePage() {
           isLoading={loading}
         />
 
-        <motion.div layout className="rounded-2xl overflow-hidden border border-green-100 shadow-sm">
+        <motion.div
+          layout
+          className="rounded-2xl overflow-hidden border border-slate-200/80 shadow-lg bg-white"
+        >
           <MapView
             center={mapCenter}
-            slots={filteredSlots}
+            zoom={mapZoom}
+            slots={mapSlots}
             showSearchCenter={searchedOnce}
+            mapRecenterVersion={mapRecenterVersion}
             selectedSlotId={selectedSlotId}
             onSlotHover={setSelectedSlotId}
             onBookNow={onReserve}
           />
         </motion.div>
+        <p className="text-center text-sm text-slate-500 -mt-2">
+          {searchedOnce
+           ? "Map shows available parking within 500 meters of your search."
+            : "Search a location to view available parking nearby."}
+        </p>
 
         {loading ? (
           <section className="results-grid">
-            <LoadingSpinner label="Loading nearby parking slots..." />
+            <LoadingSpinner label="Finding parking near you..." />
             <div className="parking-card-skeleton" />
             <div className="parking-card-skeleton" />
             <div className="parking-card-skeleton" />
           </section>
         ) : (
           <section className="space-y-4">
-            {filteredSlots.map((slot) => (
-              <ParkingCard
-                key={slot._id}
-                slot={slot}
-                onReserve={() => onReserve(slot)}
-                disabled={bookingSlotId === slot._id}
-                isActive={selectedSlotId === slot._id}
-                onHover={setSelectedSlotId}
-              />
-            ))}
-            {!filteredSlots.length && searchedOnce && (
-              <p className="rounded-xl bg-white p-6 text-center text-gray-500 shadow-sm">
-                No parking available nearby
-              </p>
+            {!searchedOnce ? (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="rounded-2xl bg-white p-6 text-center text-slate-600 shadow-sm border border-slate-100"
+              >
+                Choose date and times, then search a location to see ranked nearby parking and distances.
+              </motion.p>
+            ) : (
+              <>
+                {filteredSlots.map((slot) => (
+                  <ParkingCard
+                    key={slot._id}
+                    slot={slot}
+                    onReserve={() => onReserve(slot)}
+                    disabled={bookingSlotId === slot._id}
+                    isActive={selectedSlotId === slot._id}
+                    onHover={setSelectedSlotId}
+                  />
+                ))}
+                {!filteredSlots.length && (
+                  <p className="rounded-2xl bg-white p-6 text-center text-slate-500 shadow-sm border border-slate-100">
+                    No parking in this area. Try another neighborhood or widen your search later.
+                  </p>
+                )}
+              </>
             )}
           </section>
         )}

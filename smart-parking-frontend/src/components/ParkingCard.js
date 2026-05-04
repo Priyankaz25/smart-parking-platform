@@ -16,10 +16,10 @@ function ParkingCard({ slot, onReserve, disabled, isActive, onHover }) {
   return (
     <article
       className={`rounded-2xl border bg-white p-5 shadow-sm transition-all ${
-        isActive ? "border-green-300 shadow-lg scale-[1.01]" : "border-gray-100 hover:shadow-md"
+        isActive ? "border-emerald-300 shadow-lg scale-[1.01]" : "border-gray-100 hover:shadow-md"
       }`}
-      onMouseEnter={onHover}
-      onMouseLeave={() => onHover("")}
+      onMouseEnter={() => onHover?.(slot._id)}
+      onMouseLeave={() => onHover?.("")}
     >
       <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
         <div className="parking-card-main">

@@ -25,15 +25,23 @@ function SearchForm({
         </label>
 
         <label>
-          <span className="text-sm text-gray-600">Date</span>
-          <input
-            type="date"
-            value={form.date}
-            onChange={(e) => onChange("date", e.target.value)}
-            className={`w-full rounded-lg border px-3 py-2 ${errors.date ? "border-red-400" : "border-gray-200"}`}
-          />
-          {errors.date && <small className="field-error">{errors.date}</small>}
-        </label>
+  <span className="text-sm text-gray-600">Date</span>
+  <input
+    type="date"
+    value={form.date}
+    min={new Date().toISOString().split("T")[0]}
+    max={
+      new Date(Date.now() + 10 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0]
+    }
+    onChange={(e) => onChange("date", e.target.value)}
+    className={`w-full rounded-lg border px-3 py-2 ${
+      errors.date ? "border-red-400" : "border-gray-200"
+    }`}
+  />
+  {errors.date && <small className="field-error">{errors.date}</small>}
+</label>
 
         <label>
           <span className="text-sm text-gray-600">Start time</span>

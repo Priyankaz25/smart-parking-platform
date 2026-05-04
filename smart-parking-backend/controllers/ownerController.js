@@ -28,7 +28,7 @@ exports.createOwnerListing = async (req, res) => {
       ...req.body,
       ownerId,
       ownerName: owner.name,
-      listingStatus: owner.ownerVerificationStatus === "verified" ? "verified" : "pending",
+      listingStatus: owner.ownerVerificationStatus === "verified" ? "approved" : "pending",
     });
     await slot.save();
     return res.status(201).json(slot);

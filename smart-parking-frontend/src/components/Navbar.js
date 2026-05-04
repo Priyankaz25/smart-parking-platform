@@ -18,39 +18,54 @@ function Navbar() {
   };
 
   return (
-    <header className="navbar">
-      <div className="navbar-brand" onClick={() => navigate("/")}>
-        ParkNest
+  <header className="navbar">
+    <div className="navbar-container">
+      
+      {/* LEFT */}
+      <div className="navbar-left" onClick={() => navigate("/")}>
+        <span className="brand-icon">P</span>
+        <span className="brand-text">ParkNest</span>
       </div>
 
-      <nav className="navbar-links">
+      {/* CENTER */}
+      <nav className="navbar-center">
         {navLinks.map((link) => (
           <NavLink
             key={link.to}
             to={link.to}
-            className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
+            className={({ isActive }) =>
+              isActive ? "nav-link active" : "nav-link"
+            }
           >
             {link.label}
           </NavLink>
         ))}
       </nav>
 
-      <div className="navbar-session">
+      {/* RIGHT */}
+      <div className="navbar-right">
         {session?.user?.name ? (
           <>
-            <span className="session-name">Hi, {session.user.name}</span>
-            <button type="button" className="btn btn-outline" onClick={onLogout}>
+            <span className="session-name">
+              👋 {session.user.name}
+            </span>
+            <button className="btn logout-btn" onClick={onLogout}>
               Logout
             </button>
           </>
         ) : (
-          <button type="button" className="btn btn-primary" onClick={() => navigate("/auth")}>
+          <button
+            className="btn login-btn"
+            onClick={() => navigate("/auth")}
+          >
             Login / Register
           </button>
         )}
       </div>
-    </header>
-  );
+
+    </div>
+  </header>
+);
 }
 
 export default Navbar;

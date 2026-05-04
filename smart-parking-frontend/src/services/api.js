@@ -1,4 +1,6 @@
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "https://smart-parking-backend-li62.onrender.com/api";
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL ||
+  "http://localhost:5000/api";
 const SESSION_KEY = "parknest_session";
 
 const jsonHeaders = {
@@ -60,8 +62,12 @@ export function getAvailableSlots({ startTime, endTime }) {
   return request(`/slots/available?${query.toString()}`);
 }
 
-export function getNearbySlots({ lat, lng }) {
-  const query = new URLSearchParams({ lat: String(lat), lng: String(lng) });
+export function getNearbySlots({ lat, lng, radiusMeters = 500 }) {
+  const query = new URLSearchParams({
+    lat: String(lat),
+    lng: String(lng),
+    radius: String(radiusMeters),
+  });
   return request(`/slots/nearby?${query.toString()}`);
 }
 

@@ -2,10 +2,15 @@ const Booking = require("../models/Booking");
 const ParkingSlot = require("../models/ParkingSlot");
 const User = require("../models/User");
 
-exports.getUsers = async (_req, res) => {
+exports.getUsers = async (req, res) => {
   try {
     const users = await User.find().select("-password");
-    return res.json(users);
+
+    const filteredUsers = users.filter(
+      (user) => String(user._id) !== String(req.auth.id)
+    );
+
+    return res.json(filteredUsers);
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -70,13 +75,17 @@ exports.verifyListing = async (req, res) => {
   try {
     const { id } = req.params;
     const { status, verifiedBy } = req.body;
-    if (!["verified", "rejected", "pending"].includes(status)) {
-      return res.status(400).json({ error: "status must be verified, rejected, or pending" });
+    if (!["verified", "approved", "rejected", "pending"].includes(status)) {
+      return res
+        .status(400)
+        .json({ error: "status must be approved, verified, rejected, or pending" });
     }
+
+    const listingStatus = status === "verified" ? "approved" : status;
 
     const listing = await ParkingSlot.findByIdAndUpdate(
       id,
-      { listingStatus: status, verifiedBy: verifiedBy || null },
+      { listingStatus, verifiedBy: verifiedBy || null },
       { new: true }
     );
     if (!listing) {

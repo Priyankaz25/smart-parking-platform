@@ -12,18 +12,26 @@ const adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
 
+// DB connection
 connectDB();
 
-app.use(cors());
+// Middleware
+app.use(cors({
+  origin: "*"
+}));
+
 app.use(express.json());
 
-// ✅ CONNECT ROUTES
+// Routes
 app.use("/api/slots", slotRoutes);
 app.use("/api/owners", ownerRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/auth", authRoutes);
 
-app.listen(5000, () => {
-  console.log("Server running on port 5000");
+// ✅ FIX: Render requires dynamic PORT
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });

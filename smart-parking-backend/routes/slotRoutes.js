@@ -8,11 +8,14 @@ const Booking = require("../models/Booking");
 router.post("/", async (req, res) => {
   try {
     const { name, address, location, vehicleType } = req.body || {};
+
     if (!name || !address || !location?.coordinates || !vehicleType) {
       return res.status(400).json({
-        error: "name, address, location.coordinates, and vehicleType are required",
+        error:
+          "name, address, location.coordinates, and vehicleType are required",
       });
     }
+
     const slot = new ParkingSlot(req.body);
     await slot.save();
     res.json(slot);
@@ -21,15 +24,22 @@ router.post("/", async (req, res) => {
   }
 });
 
-// GET ALL
+// GET SEARCHED / FILTERED SLOTS ONLY
 router.get("/", async (req, res) => {
   try {
     const { location, vehicleType, startTime, endTime } = req.query;
 
+    // Prevent showing all parking spaces by default
+    if (!location && !vehicleType && !startTime && !endTime) {
+      return res.json([]);
+    }
+
     const filter = {};
+
     if (vehicleType) {
       filter.vehicleType = vehicleType;
     }
+
     if (location) {
       filter.$or = [
         { name: { $regex: location, $options: "i" } },
@@ -38,32 +48,39 @@ router.get("/", async (req, res) => {
     }
 
     let excludedSlotIds = [];
+
     if (startTime && endTime) {
       const overlappingBookings = await Booking.find({
         status: { $nin: ["cancelled", "rejected"] },
         startTime: { $lt: new Date(endTime) },
         endTime: { $gt: new Date(startTime) },
       }).select("slotId");
+
       excludedSlotIds = overlappingBookings.map((item) => item.slotId);
     }
 
     const slots = await ParkingSlot.find({
       ...filter,
-      ...(excludedSlotIds.length ? { _id: { $nin: excludedSlotIds } } : {}),
+      ...(excludedSlotIds.length
+        ? { _id: { $nin: excludedSlotIds } }
+        : {}),
     });
+
     res.json(slots);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// AVAILABLE SLOTS (FIXED)
+// AVAILABLE SLOTS
 router.get("/available", async (req, res) => {
   try {
     const { startTime, endTime } = req.query;
 
     if (!startTime || !endTime) {
-      return res.status(400).json({ error: "Start and end time required" });
+      return res.status(400).json({
+        error: "Start and end time required",
+      });
     }
 
     const bookings = await Booking.find({
@@ -75,27 +92,35 @@ router.get("/available", async (req, res) => {
 
     const available = await ParkingSlot.find({
       _id: { $nin: bookedIds },
-      listingStatus: "approved",
+      listingStatus: { $in: ["approved", "verified"] },
       isAvailable: true,
-      vehicleType: "4W"
+      vehicleType: "4W",
     });
 
     res.json(available);
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// NEARBY SLOTS WITH DISTANCE (500 meters)
+// NEARBY SLOTS WITH DISTANCE
 router.get("/nearby", async (req, res) => {
   try {
-    const { lat, lng } = req.query;
+    const { lat, lng, radius } = req.query;
+
     const latitude = Number(lat);
     const longitude = Number(lng);
+    const radiusMeters = Number(radius);
+
+    const maxDistance =
+      Number.isFinite(radiusMeters) && radiusMeters > 0
+        ? Math.min(radiusMeters, 2000)
+        : 2000;
 
     if (Number.isNaN(latitude) || Number.isNaN(longitude)) {
-      return res.status(400).json({ error: "Valid lat and lng are required" });
+      return res.status(400).json({
+        error: "Valid lat and lng are required",
+      });
     }
 
     const nearbySlots = await ParkingSlot.aggregate([
@@ -106,10 +131,10 @@ router.get("/nearby", async (req, res) => {
             coordinates: [longitude, latitude],
           },
           distanceField: "distanceMeters",
-          maxDistance: 500,
+          maxDistance,
           spherical: true,
           query: {
-            listingStatus: "approved",
+            listingStatus: { $in: ["approved", "verified"] },
             isAvailable: true,
             vehicleType: "4W",
           },

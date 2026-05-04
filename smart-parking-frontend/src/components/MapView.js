@@ -1,6 +1,7 @@
+import { useEffect } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { MapContainer, TileLayer, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import MapMarker from "./MapMarker";
 
 const markerIcon = L.divIcon({
@@ -17,13 +18,46 @@ const activeMarkerIcon = L.divIcon({
   iconAnchor: [26, 52],
 });
 
-function RecenterMap({ center }) {
+const searchPinIcon = L.divIcon({
+  className: "search-pin-marker",
+  html: "<span aria-hidden=\"true\">📍</span>",
+  iconSize: [40, 40],
+  iconAnchor: [20, 40],
+});
+
+function MapController({ center, zoom, recenterVersion }) {
   const map = useMap();
-  map.setView(center, 13, { animate: true });
+
+  useEffect(() => {
+    if (!Array.isArray(center) || center.length < 2) return;
+    const [lat, lng] = center;
+    if (typeof lat !== "number" || typeof lng !== "number" || Number.isNaN(lat) || Number.isNaN(lng)) {
+      return;
+    }
+    map.setView([lat, lng], zoom, { animate: true });
+  }, [map, center, zoom, recenterVersion]);
+
   return null;
 }
 
-function MapView({ center, slots, selectedSlotId, onSlotHover, onBookNow }) {
+function SearchLocationMarker({ position, visible }) {
+  if (!visible || !Array.isArray(position) || position.length < 2) return null;
+  const [lat, lng] = position;
+  if (typeof lat !== "number" || typeof lng !== "number") return null;
+  return <Marker position={[lat, lng]} icon={searchPinIcon} />;
+}
+
+function MapView({
+  center,
+  zoom = 5,
+  slots = [],
+  selectedSlotId,
+  onSlotHover,
+  onBookNow,
+  showSearchCenter = false,
+  mapRecenterVersion = 0,
+  mapClassName = "",
+}) {
   const usedCoordinates = new Map();
 
   const withOffset = (lat, lng) => {
@@ -35,14 +69,17 @@ function MapView({ center, slots, selectedSlotId, onSlotHover, onBookNow }) {
     return [lat + shift, lng - shift];
   };
 
+  const mapHeightClass = mapClassName.trim() || "leaflet-map";
+
   return (
     <section className="panel map-panel">
-      <MapContainer center={center} zoom={5} className="leaflet-map">
+      <MapContainer center={center} zoom={zoom} className={mapHeightClass} scrollWheelZoom>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <RecenterMap center={center} />
+        <MapController center={center} zoom={zoom} recenterVersion={mapRecenterVersion} />
+        <SearchLocationMarker position={center} visible={showSearchCenter} />
         {slots.map((slot) => {
           const coordinates = slot.location?.coordinates || [];
           const lng = coordinates[0];
