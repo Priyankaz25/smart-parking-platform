@@ -17,7 +17,7 @@ connectDB();
 
 // Middleware
 app.use(cors({
-  origin: "*"
+  origin: "https://smart-parking-availability-platform.vercel.app/"
 }));
 
 app.use(express.json());
