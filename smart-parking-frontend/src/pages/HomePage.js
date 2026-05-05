@@ -9,7 +9,7 @@ import ParkingCard from "../components/ParkingCard";
 import PaymentModal from "../components/PaymentModal";
 import SearchForm from "../components/SearchForm";
 import { useToast } from "../components/Toast";
-import { createBooking, getAllSlots, getNearbySlots } from "../services/api";
+import { createBooking, getNearbySlots } from "../services/api";
 import { getSession } from "../services/session";
 import { geocodeLocationText } from "../utils/geocode";
 import { slotMatchesListing } from "../utils/slotFilters";
