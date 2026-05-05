@@ -1,6 +1,6 @@
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL ||
-  "https://smart-parking-backend.onrender.com/api";
+  "https://smart-parking-platform.onrender.com";
 const SESSION_KEY = "parknest_session";
 
 const jsonHeaders = {
